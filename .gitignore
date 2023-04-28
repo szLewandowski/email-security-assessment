@@ -37,4 +37,5 @@ out/
 .vscode/
 /src/main/resources/client_secret.json
 /tokens/
-/imported.txt
+/email_json.txt
+/email_body.txt

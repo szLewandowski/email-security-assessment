@@ -13,12 +13,9 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.model.ListThreadsResponse;
-import com.google.api.services.gmail.model.MessagePart;
-import com.google.api.services.gmail.model.MessagePartHeader;
-import com.google.api.services.gmail.model.ModifyMessageRequest;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
+import com.google.api.services.gmail.model.*;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +36,8 @@ import static javax.mail.Message.RecipientType.TO;
 public class GmailApi {
     private static final String TEST_EMAIL = "verify.this.email.message@gmail.com";
     private static final String CREDENTIALS_FILE_PATH = "/client_secret.json";
-    private static final String ALREADY_IMPORTED_FILENAME = "imported.txt";
+    private static final String EMAIL_BODY_FILENAME = "email_body.txt";
+    private static final String JSON_FILENAME = "email_json.txt";
     public static final String ANSWERED_LABEL = "Label_5818199300687850800";
     private static final GsonFactory GSON_FACTORY = GsonFactory.getDefaultInstance();
     public static final String USER_ID = "me";
@@ -51,11 +49,11 @@ public class GmailApi {
                 .setApplicationName("Test Mailer")
                 .build();
 
-        File file = new File(ALREADY_IMPORTED_FILENAME);
+        File file = new File(EMAIL_BODY_FILENAME);
         if (!file.exists()) {
             boolean newFile = file.createNewFile();
             if (!newFile) {
-                System.out.println("Could not create " + ALREADY_IMPORTED_FILENAME);
+                System.out.println("Could not create " + EMAIL_BODY_FILENAME);
             }
         }
     }
@@ -124,7 +122,8 @@ public class GmailApi {
         for (var thread : threads) {
             Thread threadWithMessages = service.users().threads().get(USER_ID, thread.getId()).setFormat("full").execute();
             for (Message message : threadWithMessages.getMessages()) {
-                saveTextToFile(readEmailBody(message));
+                saveTextToFile(readEmailBody(message), EMAIL_BODY_FILENAME);
+                saveTextToFile(String.valueOf(message), JSON_FILENAME);
                 System.out.println("Email sender: " + emailSender(message));
             }
         }
@@ -132,7 +131,6 @@ public class GmailApi {
 
     private String readEmailBody(Message message) throws IOException {
         String emailBody = "";
-        saveTextToFile(String.valueOf(message));
         if (message.getPayload().getParts() != null) {
             for (MessagePart messagePart : message.getPayload().getParts()) {
                 if (messagePart.getMimeType().equals("text/html")) {
@@ -170,9 +168,9 @@ public class GmailApi {
         service.users().messages().modify(USER_ID, message.getId(), modifyMessageRequest).execute();
     }
 
-    private void saveTextToFile(String text) {
+    private void saveTextToFile(String text, String filename) {
         try {
-            FileWriter writer = new FileWriter(ALREADY_IMPORTED_FILENAME);
+            FileWriter writer = new FileWriter(filename);
             BufferedWriter bufferedWriter = new BufferedWriter(writer);
             bufferedWriter.write(text);
             bufferedWriter.close();
