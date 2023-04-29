@@ -41,6 +41,8 @@ public class GmailApi {
     public static final String ANSWERED_LABEL = "Label_5818199300687850800";
     private static final GsonFactory GSON_FACTORY = GsonFactory.getDefaultInstance();
     public static final String USER_ID = "me";
+    public static final String RETURN_PATH_HEADER = "Return-Path";
+    public static final String FROM_HEADER = "From";
     private final Gmail service;
 
     public GmailApi() throws Exception {
@@ -150,15 +152,34 @@ public class GmailApi {
     }
 
     private String emailSender(Message message) throws Exception {
+        String from = null;
         if (message.getPayload().getHeaders() != null) {
             for (MessagePartHeader messagePartHeader : message.getPayload().getHeaders()) {
-                if (messagePartHeader.getName().equals("Return-Path")) {
-                    return messagePartHeader.getValue();
+                if (messagePartHeader.getName().equals(RETURN_PATH_HEADER)) {
+                    return extractEmail(messagePartHeader.getValue());
+                }
+                if (messagePartHeader.getName().equals(FROM_HEADER)) {
+                    from = extractEmail(messagePartHeader.getValue());
                 }
             }
-            throw new Exception("Return-Path not found");
+            if (from != null){
+                return from;
+            }
+            else {
+                throw new Exception("Return-Path and From not found");
+            }
         }
         throw new Exception("Empty JSON headers");
+    }
+
+    private String extractEmail(String text){
+        int start = text.indexOf("<");
+        int end = text.indexOf(">");
+        if (start != -1 && end != -1) {
+            return text.substring(start + 1, end);
+        } else {
+            return text;
+        }
     }
 
     private void moveToLabelAnswered(Message message) throws IOException {
