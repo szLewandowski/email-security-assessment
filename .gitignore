@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+/src/main/resources/client_secret.json
+/tokens/
+/email_json.txt
+/email_body.txt
