@@ -12,10 +12,10 @@ import java.util.regex.Pattern;
 
 @Component
 public class MessageContentAnalyze {
-    private static final String EMAIL_BODY_FILENAME = "email_body.txt";
+    private static final String EMAIL_BODY_HTML_FILENAME = "email_body_html.txt";
 
     public void extractLinks() throws MalformedURLException {
-        String content = readFile(EMAIL_BODY_FILENAME);
+        String content = readFile(EMAIL_BODY_HTML_FILENAME);
         Pattern pattern = Pattern.compile("href=(?:\"|')?(.*?)(?:\"|')?(?:\\s|>)");
         Matcher matcher = pattern.matcher(content);
         while (matcher.find()) {
