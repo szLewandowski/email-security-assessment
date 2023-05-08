@@ -36,7 +36,8 @@ import static javax.mail.Message.RecipientType.TO;
 public class GmailApi {
     private static final String TEST_EMAIL = "verify.this.email.message@gmail.com";
     private static final String CREDENTIALS_FILE_PATH = "/client_secret.json";
-    private static final String EMAIL_BODY_FILENAME = "email_body.txt";
+    private static final String EMAIL_BODY_PLAIN_FILENAME = "email_body_plain.txt";
+    private static final String EMAIL_BODY_HTML_FILENAME = "email_body_html.txt";
     private static final String JSON_FILENAME = "email_json.txt";
     public static final String ANSWERED_LABEL = "Label_5818199300687850800";
     private static final GsonFactory GSON_FACTORY = GsonFactory.getDefaultInstance();
@@ -51,11 +52,18 @@ public class GmailApi {
                 .setApplicationName("Test Mailer")
                 .build();
 
-        File file = new File(EMAIL_BODY_FILENAME);
-        if (!file.exists()) {
-            boolean newFile = file.createNewFile();
+        File plainFile = new File(EMAIL_BODY_PLAIN_FILENAME);
+        if (!plainFile.exists()) {
+            boolean newFile = plainFile.createNewFile();
             if (!newFile) {
-                System.out.println("Could not create " + EMAIL_BODY_FILENAME);
+                System.out.println("Could not create " + EMAIL_BODY_PLAIN_FILENAME);
+            }
+        }
+        File htmlFile = new File(EMAIL_BODY_HTML_FILENAME);
+        if (!htmlFile.exists()) {
+            boolean newFile = htmlFile.createNewFile();
+            if (!newFile) {
+                System.out.println("Could not create " + EMAIL_BODY_HTML_FILENAME);
             }
         }
     }
@@ -124,31 +132,66 @@ public class GmailApi {
         for (var thread : threads) {
             Thread threadWithMessages = service.users().threads().get(USER_ID, thread.getId()).setFormat("full").execute();
             for (Message message : threadWithMessages.getMessages()) {
-                saveTextToFile(readEmailBody(message), EMAIL_BODY_FILENAME);
+                readAndSaveEmailBody(message);
+//                saveTextToFile(readEmailBody(message), EMAIL_BODY_HTML_FILENAME);
                 saveTextToFile(String.valueOf(message), JSON_FILENAME);
                 System.out.println("Email sender: " + emailSender(message));
             }
         }
     }
 
-    private String readEmailBody(Message message) throws IOException {
-        String emailBody = "";
-        if (message.getPayload().getParts() != null) {
-            for (MessagePart messagePart : message.getPayload().getParts()) {
-                if (messagePart.getMimeType().equals("text/html")) {
-                    emailBody = new String(java.util.Base64.getUrlDecoder().decode(messagePart.getBody().getData()), "UTF-8");
-                } else if (messagePart.getMimeType().equals("multipart/alternative")) {
-                    for (MessagePart messagePartNested : messagePart.getParts()) {
-                        if (messagePartNested.getMimeType().equals("text/html")) {
-                            emailBody = new String(java.util.Base64.getUrlDecoder().decode(messagePartNested.getBody().getData()), "UTF-8");
-                        }
-                    }
-                }
-            }
-        } else {
-            emailBody = new String(java.util.Base64.getUrlDecoder().decode(message.getPayload().getBody().getData()), "UTF-8");
+    private void readAndSaveEmailBody(Message message) throws Exception {
+        saveTextToFile("", EMAIL_BODY_HTML_FILENAME);
+        saveTextToFile("", EMAIL_BODY_PLAIN_FILENAME);
+        switch (message.getPayload().getMimeType()) {
+            case "multipart/mixed" -> findTextStartingFromMixed(message.getPayload());
+            case "multipart/related" -> findTextStartingFromRelated(message.getPayload());
+            case "multipart/alternative" -> findTextStartingFromAlternative(message.getPayload());
+            case "text/plain" -> savePlainToFile(message.getPayload());
+            case "text/html" -> saveHtmlToFile(message.getPayload());
+            default -> throw new Exception("Invalid message mimeType");
         }
-        return emailBody;
+    }
+
+    private void findTextStartingFromMixed(MessagePart mixedMime) throws Exception {
+        for (MessagePart messagePart : mixedMime.getParts()) {
+            if (messagePart.getMimeType().equals("multipart/related")) {
+                findTextStartingFromRelated(messagePart);
+            }
+        }
+    }
+
+    private void findTextStartingFromRelated(MessagePart relatedMime) throws Exception {
+        for (MessagePart messagePart : relatedMime.getParts()) {
+            if (messagePart.getMimeType().equals("multipart/alternative")) {
+                findTextStartingFromAlternative(messagePart);
+            }
+        }
+    }
+
+    private void findTextStartingFromAlternative(MessagePart alternativeMime) throws Exception {
+        for (MessagePart messagePart : alternativeMime.getParts()) {
+            if (messagePart.getMimeType().equals("text/plain")) {
+                savePlainToFile(messagePart);
+            }
+            if (messagePart.getMimeType().equals("text/html")) {
+                saveHtmlToFile(messagePart);
+            }
+        }
+    }
+
+    private void saveHtmlToFile(MessagePart htmlMime) throws Exception {
+        saveTextToFile(
+                new String(java.util.Base64.getUrlDecoder().decode(htmlMime.getBody().getData()), "UTF-8"),
+                EMAIL_BODY_HTML_FILENAME
+        );
+    }
+
+    private void savePlainToFile(MessagePart plainMime) throws Exception {
+        saveTextToFile(
+                new String(java.util.Base64.getUrlDecoder().decode(plainMime.getBody().getData()), "UTF-8"),
+                EMAIL_BODY_PLAIN_FILENAME
+        );
     }
 
     private String emailSender(Message message) throws Exception {
@@ -162,17 +205,16 @@ public class GmailApi {
                     from = extractEmail(messagePartHeader.getValue());
                 }
             }
-            if (from != null){
+            if (from != null) {
                 return from;
-            }
-            else {
+            } else {
                 throw new Exception("Return-Path and From not found");
             }
         }
         throw new Exception("Empty JSON headers");
     }
 
-    private String extractEmail(String text){
+    private String extractEmail(String text) {
         int start = text.indexOf("<");
         int end = text.indexOf(">");
         if (start != -1 && end != -1) {

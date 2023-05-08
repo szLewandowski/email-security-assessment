@@ -38,4 +38,5 @@ out/
 /src/main/resources/client_secret.json
 /tokens/
 /email_json.txt
-/email_body.txt
+/email_body_plain.txt
+/email_body_html.txt
