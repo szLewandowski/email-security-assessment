@@ -23,6 +23,41 @@ public class MessageContentAnalyze {
         return links;
     }
 
+    public HashSet<String> extractEmails(){
+        HashSet<String> emails = new HashSet<>();
+        emails.addAll(extractEmailsFromHtml());
+        emails.addAll(extractEmailsFromPlaintext());
+        return emails;
+    }
+
+    private HashSet<String> extractEmailsFromPlaintext() {
+        String content = readFile(EMAIL_BODY_PLAIN_FILENAME);
+        Pattern pattern = Pattern.compile("\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b");
+        Matcher matcher = pattern.matcher(content);
+        HashSet<String> emailsHashSet = new HashSet<>();
+        while (matcher.find()) {
+            String mail = matcher.group(0);
+            emailsHashSet.add(mail);
+        }
+        System.out.println("PLAIN emails: " + emailsHashSet);
+        return emailsHashSet;
+    }
+
+    private HashSet<String> extractEmailsFromHtml() {
+        String content = readFile(EMAIL_BODY_HTML_FILENAME);
+        Pattern pattern = Pattern.compile("href=(?:\"|')?(.*?)(?:\"|')?(?:\\s|>)");
+        Matcher matcher = pattern.matcher(content);
+        HashSet<String> emailsHashSet = new HashSet<>();
+        while (matcher.find()) {
+            String href = matcher.group(1);
+            if (href.startsWith("mailto")) {
+                emailsHashSet.add(href.replace("mailto:", ""));
+            }
+        }
+        System.out.println("HTML emails: " + emailsHashSet);
+        return emailsHashSet;
+    }
+
     private HashSet<String> extractLinksFromHtml() throws MalformedURLException {
         String content = readFile(EMAIL_BODY_HTML_FILENAME);
         Pattern pattern = Pattern.compile("href=(?:\"|')?(.*?)(?:\"|')?(?:\\s|>)");
@@ -32,10 +67,9 @@ public class MessageContentAnalyze {
             String link = matcher.group(1);
             if (link.startsWith("http")) {
                 linksHashSet.add(getDomainFromUrl(link));
-            } else if (link.startsWith("mailto")) {
-                System.out.println(link);
             }
         }
+        System.out.println("HTML links: " + linksHashSet);
         return linksHashSet;
     }
 
@@ -48,6 +82,7 @@ public class MessageContentAnalyze {
             String link = matcher.group(1);
             linksHashSet.add(getDomainFromUrl(link));
         }
+        System.out.println("PLAIN links: " + linksHashSet);
         return linksHashSet;
     }
 
