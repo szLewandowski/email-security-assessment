@@ -16,6 +16,6 @@ public class MessageService {
 
     public void newMessage() throws Exception {
         gmailApi.readBodyAndSetAsDone();
-        messageContentAnalyze.extractLinks();
+        System.out.println(messageContentAnalyze.extractLinks());
     }
 }
