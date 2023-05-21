@@ -22,15 +22,15 @@ public class Message {
 
     @ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(
-            joinColumns = { @JoinColumn(name = "message_id")},
-            inverseJoinColumns = { @JoinColumn(name = "domain_id")}
+            joinColumns = {@JoinColumn(name = "message_id")},
+            inverseJoinColumns = {@JoinColumn(name = "domain_id")}
     )
     private Set<Domain> domains = new HashSet<>();
 
     @ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(
-            joinColumns = { @JoinColumn(name = "message_id")},
-            inverseJoinColumns = { @JoinColumn(name = "email_id")}
+            joinColumns = {@JoinColumn(name = "message_id")},
+            inverseJoinColumns = {@JoinColumn(name = "email_id")}
     )
     private Set<Email> emails = new HashSet<>();
 

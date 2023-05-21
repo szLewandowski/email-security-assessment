@@ -40,3 +40,4 @@ out/
 /email_json.txt
 /email_body_plain.txt
 /email_body_html.txt
+/src/main/java/com/example/emailsecurityassessment/domain/api/ApiKeys.java
