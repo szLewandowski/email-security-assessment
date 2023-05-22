@@ -3,8 +3,8 @@ package com.example.emailsecurityassessment.user;
 import com.example.emailsecurityassessment.message.Message;
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -16,7 +16,7 @@ public class User {
     private String email;
 
     @OneToMany(mappedBy = "user")
-    private List<Message> messages = new ArrayList<>();
+    private Set<Message> messages = new HashSet<>();
 
     public void addMessage(Message message) {
         messages.add(message);
@@ -39,11 +39,11 @@ public class User {
         this.email = email;
     }
 
-    public List<Message> getMessage() {
+    public Set<Message> getMessage() {
         return messages;
     }
 
-    public void setMessage(List<Message> message) {
+    public void setMessage(Set<Message> message) {
         this.messages = message;
     }
 
