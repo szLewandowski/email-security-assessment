@@ -116,17 +116,18 @@ public class GmailApi {
         }
     }
 
-    public void readBodyAndSetAsDone() throws Exception {
+    public String readBodyAndSetAsDone() throws Exception {
         ListThreadsResponse allInboxThreads = service.users()
                 .threads()
                 .list(USER_ID)
                 .setLabelIds(List.of("INBOX"))
                 .execute();
 
+        String sender = "";
         var threads = allInboxThreads.getThreads();
         if (threads == null || threads.isEmpty()) {
             System.out.println("No mails to process");
-            return;
+            return sender;
         }
         Collections.reverse(threads);
         for (var thread : threads) {
@@ -135,9 +136,10 @@ public class GmailApi {
                 readAndSaveEmailBody(message);
 //                saveTextToFile(readEmailBody(message), EMAIL_BODY_HTML_FILENAME);
                 saveTextToFile(String.valueOf(message), JSON_FILENAME);
-                System.out.println("Email sender: " + emailSender(message));
+                sender = emailSender(message);
             }
         }
+        return sender;
     }
 
     private void readAndSaveEmailBody(Message message) throws Exception {

@@ -20,6 +20,11 @@ public class Domain {
     @ManyToMany(mappedBy = "domains")
     private Set<Message> messages = new HashSet<>();
 
+    public void addMessage(Message message){
+        messages.add(message);
+        message.getDomains().add(this);
+    }
+
     public Long getId() {
         return id;
     }

@@ -7,17 +7,15 @@ import com.google.gson.JsonObject;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashSet;
-
 @Component
 public class GoogleSafeBrowsing implements ThreatAssessment {
 
     private static final String URL_PATH = "https://safebrowsing.googleapis.com/v4/threatMatches:find";
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public double getThreatAssessment(HashSet<String> domains) {
+    public double getThreatAssessment(String domain) {
         String response = restTemplate.postForObject(URL_PATH + "?key=" + ApiKeys.GoogleSafeBrowsing,
-                makeRequest(domains), String.class);
+                makeRequest(domain), String.class);
         if (response == null) {
             throw new NullPointerException("Response is null");
         }
@@ -30,17 +28,15 @@ public class GoogleSafeBrowsing implements ThreatAssessment {
         }
     }
 
-    private String makeRequest(HashSet<String> domains) {
+    private String makeRequest(String domain) {
         JsonObject client = new JsonObject();
         client.addProperty("clientId", "emailSecurityAssessment");
         client.addProperty("clientVersion", "1.0");
 
         JsonArray threatEntriesArray = new JsonArray();
-        for (String domain : domains) {
-            JsonObject threatEntry = new JsonObject();
-            threatEntry.addProperty("url", domain);
-            threatEntriesArray.add(threatEntry);
-        }
+        JsonObject threatEntry = new JsonObject();
+        threatEntry.addProperty("url", domain);
+        threatEntriesArray.add(threatEntry);
 
         JsonObject threatInfo = new JsonObject();
         JsonArray threatTypes = new JsonArray();

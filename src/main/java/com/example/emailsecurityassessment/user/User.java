@@ -16,7 +16,12 @@ public class User {
     private String email;
 
     @OneToMany(mappedBy = "user")
-    private List<Message> message = new ArrayList<>();
+    private List<Message> messages = new ArrayList<>();
+
+    public void addMessage(Message message) {
+        messages.add(message);
+        message.setUser(this);
+    }
 
     public Long getId() {
         return id;
@@ -35,11 +40,11 @@ public class User {
     }
 
     public List<Message> getMessage() {
-        return message;
+        return messages;
     }
 
     public void setMessage(List<Message> message) {
-        this.message = message;
+        this.messages = message;
     }
 
 }

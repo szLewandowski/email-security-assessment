@@ -20,6 +20,11 @@ public class Email {
     @ManyToMany(mappedBy = "emails")
     private Set<Message> messages = new HashSet<>();
 
+    public void addMessage(Message message){
+        messages.add(message);
+        message.getEmails().add(this);
+    }
+
     public Long getId() {
         return id;
     }
