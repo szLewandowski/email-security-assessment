@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 @Component
-public class GoogleSafeBrowsing implements ThreatAssessment {
+public class GoogleSafeBrowsing {
 
     private static final String URL_PATH = "https://safebrowsing.googleapis.com/v4/threatMatches:find";
     private final RestTemplate restTemplate = new RestTemplate();

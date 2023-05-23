@@ -15,12 +15,13 @@ public class Domain {
     private Long id;
     private String address;
     private float google_safe_browsing_assessment;
+    private float urlscan_assessment;
     private boolean homoglyph;
 
     @ManyToMany(mappedBy = "domains")
     private Set<Message> messages = new HashSet<>();
 
-    public void addMessage(Message message){
+    public void addMessage(Message message) {
         messages.add(message);
         message.getDomains().add(this);
     }
@@ -47,6 +48,14 @@ public class Domain {
 
     public void setGoogle_safe_browsing_assessment(float google_safe_browsing_assessment) {
         this.google_safe_browsing_assessment = google_safe_browsing_assessment;
+    }
+
+    public float getUrlscan_assessment() {
+        return urlscan_assessment;
+    }
+
+    public void setUrlscan_assessment(float urlscan_assessment) {
+        this.urlscan_assessment = urlscan_assessment;
     }
 
     public boolean isHomoglyph() {
