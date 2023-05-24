@@ -2,6 +2,7 @@ package com.example.emailsecurityassessment.domain;
 
 import com.example.emailsecurityassessment.domain.api.GoogleSafeBrowsing;
 import com.example.emailsecurityassessment.domain.api.UrlscanIo;
+import com.example.emailsecurityassessment.domain.api.VirusTotal;
 import com.example.emailsecurityassessment.message.Message;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +23,14 @@ public class DomainService {
         Domain domain = new Domain();
         domain.setAddress(link);
         domain.setGoogle_safe_browsing_assessment((float) googleSafeBrowsing.getThreatAssessment(link));
-        String responseUrl = urlscanIo.requestForThreatAssessment(link);
+        String responseUrl = VirusTotal.requestForThreatAssessment(link);
         System.out.println(responseUrl);
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        double assessment = urlscanIo.getThreatAssessment(responseUrl);
+        double assessment = VirusTotal.getThreatAssessment(responseUrl);
         System.out.println(assessment);
         domain.setUrlscan_assessment((float) assessment);
         domain.setHomoglyph(isHomoglyph());

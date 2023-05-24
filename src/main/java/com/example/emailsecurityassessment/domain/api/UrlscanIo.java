@@ -27,8 +27,8 @@ public class UrlscanIo {
         return jsonResponse.get("api").getAsString();
     }
 
-    public double getThreatAssessment(String responsUrl) {
-        String response = restTemplate.getForObject(responsUrl, String.class);
+    public double getThreatAssessment(String responseUrl) {
+        String response = restTemplate.getForObject(responseUrl, String.class);
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
         int score = 0;
