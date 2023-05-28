@@ -14,9 +14,9 @@ import org.springframework.web.client.RestTemplate;
 public class UrlscanIo {
 
     private static final String URL_PATH = "https://urlscan.io/api/v1/scan/";
-    private final RestTemplate restTemplate = new RestTemplate();
+    private static final RestTemplate restTemplate = new RestTemplate();
 
-    public String requestForThreatAssessment(String domain) {
+    public static String requestForThreatAssessment(String domain) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("API-Key", ApiKeys.UrlscanIo);
         headers.set("Content-Type", "application/json");
@@ -27,28 +27,30 @@ public class UrlscanIo {
         return jsonResponse.get("api").getAsString();
     }
 
-    public double getThreatAssessment(String responseUrl) {
+    public static double getThreatAssessment(String responseUrl) {
         String response = restTemplate.getForObject(responseUrl, String.class);
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-        int score = 0;
-        if (jsonObject.has("verdicts")) {
-            JsonObject verdictsObject = jsonObject.getAsJsonObject("verdicts");
-            if (verdictsObject.has("overall")) {
-                JsonObject overallObject = verdictsObject.getAsJsonObject("overall");
-                if (overallObject.has("score")) {
-                    score = overallObject.get("score").getAsInt();
-                    System.out.println("Overall Score: " + score);
-                }
-            }
-        }
+        int score = jsonObject
+                .getAsJsonObject("verdicts")
+                .getAsJsonObject("overall")
+                .get("score").getAsInt();
         if (score < 0) {
             score = 0;
         }
         return score;
     }
 
-    private String makeRequest(String domain) {
+    public static String getIpAddress(String responseUrl){
+        String response = restTemplate.getForObject(responseUrl, String.class);
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+        return jsonObject
+                .getAsJsonObject("page")
+                .get("ip").getAsString();
+    }
+
+    private static String makeRequest(String domain) {
         JsonObject request = new JsonObject();
         request.addProperty("url", domain);
         request.addProperty("visibility", "public");
