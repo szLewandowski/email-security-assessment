@@ -1,8 +1,7 @@
 package com.example.emailsecurityassessment.domain;
 
-import com.example.emailsecurityassessment.domain.api.AbuseIpdb;
+import com.example.emailsecurityassessment.domain.api.FileScanIo;
 import com.example.emailsecurityassessment.domain.api.GoogleSafeBrowsing;
-import com.example.emailsecurityassessment.domain.api.UrlscanIo;
 import com.example.emailsecurityassessment.message.Message;
 import org.springframework.stereotype.Service;
 
@@ -19,21 +18,20 @@ public class DomainService {
         Domain domain = new Domain();
         domain.setAddress(link);
         domain.setGoogle_safe_browsing_assessment((float) GoogleSafeBrowsing.getThreatAssessment(link));
-        String responseUrl = UrlscanIo.requestForThreatAssessment(link);
+        String responseUrl = FileScanIo.requestForThreatAssessment(link);
         System.out.println(responseUrl);
         try {
-            Thread.sleep(15000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        double assessment = UrlscanIo.getThreatAssessment(responseUrl);
+        double assessment = FileScanIo.getThreatAssessment(responseUrl);
         System.out.println(assessment);
         domain.setUrlscan_assessment((float) assessment);
         domain.setHomoglyph(isHomoglyph());
         domain.addMessage(message);
         domainRepository.save(domain);
-        System.out.println(UrlscanIo.getIpAddress(responseUrl));
-        System.out.println(AbuseIpdb.getThreatAssessment(UrlscanIo.getIpAddress(responseUrl)));
+//        System.out.println(AbuseIpdb.getThreatAssessment(UrlscanIo.getIpAddress(responseUrl)));
     }
 
     private boolean isHomoglyph() {
