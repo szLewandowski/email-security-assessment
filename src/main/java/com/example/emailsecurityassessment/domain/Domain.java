@@ -16,6 +16,9 @@ public class Domain {
     private String address;
     private float google_safe_browsing_assessment;
     private float urlscan_assessment;
+    private float abuseipdb_assessment;
+    private float filescanio_assessment;
+    private float virustotal_assessment;
     private boolean homoglyph;
 
     @ManyToMany(mappedBy = "domains")
@@ -56,6 +59,30 @@ public class Domain {
 
     public void setUrlscan_assessment(float urlscan_assessment) {
         this.urlscan_assessment = urlscan_assessment;
+    }
+
+    public float getAbuseipdb_assessment() {
+        return abuseipdb_assessment;
+    }
+
+    public void setAbuseipdb_assessment(float abuseipdb_assessment) {
+        this.abuseipdb_assessment = abuseipdb_assessment;
+    }
+
+    public float getFilescanio_assessment() {
+        return filescanio_assessment;
+    }
+
+    public void setFilescanio_assessment(float filescanio_assessment) {
+        this.filescanio_assessment = filescanio_assessment;
+    }
+
+    public float getVirustotal_assessment() {
+        return virustotal_assessment;
+    }
+
+    public void setVirustotal_assessment(float virustotal_assessment) {
+        this.virustotal_assessment = virustotal_assessment;
     }
 
     public boolean isHomoglyph() {
