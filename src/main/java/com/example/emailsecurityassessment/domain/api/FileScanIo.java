@@ -3,11 +3,9 @@ package com.example.emailsecurityassessment.domain.api;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
@@ -36,12 +34,16 @@ public class FileScanIo {
         JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
         JsonObject reports = jsonResponse.getAsJsonObject("reports");
         for (Map.Entry<String, JsonElement> entry : reports.entrySet()) {
-            return entry.getValue()
-                    .getAsJsonObject()
-                    .getAsJsonObject("finalVerdict")
-                    .get("threatLevel").getAsFloat();
+            try {
+                return entry.getValue()
+                        .getAsJsonObject()
+                        .getAsJsonObject("finalVerdict")
+                        .get("threatLevel").getAsFloat();
+            } catch (NullPointerException e) {
+                throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Response is not ready");
+            }
         }
-        throw new IllegalArgumentException("No report entry found in the JSON response");
+        throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "No report entry found in the JSON response");
     }
 }
 
