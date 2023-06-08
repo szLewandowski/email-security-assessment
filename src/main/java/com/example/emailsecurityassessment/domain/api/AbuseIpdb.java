@@ -15,7 +15,7 @@ public class AbuseIpdb {
     private static final String URL_PATH = "https://api.abuseipdb.com/api/v2/check";
     private static final RestTemplate restTemplate = new RestTemplate();
 
-    public static double getThreatAssessment(String ip) {
+    public static float getThreatAssessment(String ip) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Key", ApiKeys.AbuseIpdb);
         headers.set("Accept", "application/json");
@@ -27,6 +27,6 @@ public class AbuseIpdb {
         int score = jsonResponse
                 .getAsJsonObject("data")
                 .get("abuseConfidenceScore").getAsInt();
-        return (double) score / 100;
+        return (float) score / 100;
     }
 }

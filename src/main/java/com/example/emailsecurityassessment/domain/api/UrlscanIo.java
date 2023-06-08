@@ -27,7 +27,7 @@ public class UrlscanIo {
         return jsonResponse.get("api").getAsString();
     }
 
-    public static double getThreatAssessment(String responseUrl) {
+    public static float getThreatAssessment(String responseUrl) {
         String response = restTemplate.getForObject(responseUrl, String.class);
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
@@ -38,10 +38,10 @@ public class UrlscanIo {
         if (score < 0) {
             score = 0;
         }
-        return score;
+        return (float) score / 100;
     }
 
-    public static String getIpAddress(String responseUrl){
+    public static String getIpAddress(String responseUrl) {
         String response = restTemplate.getForObject(responseUrl, String.class);
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(response, JsonObject.class);

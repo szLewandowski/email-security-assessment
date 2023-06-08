@@ -28,17 +28,23 @@ public class VirusTotal {
                 .get("self").getAsString();
     }
 
-    public static double getThreatAssessment(String responseUrl){
+    public static float getThreatAssessment(String responseUrl) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("x-apikey", ApiKeys.VirusTotal);
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
         ResponseEntity<String> response = restTemplate.exchange(responseUrl, HttpMethod.GET, entity, String.class);
         Gson gson = new Gson();
         JsonObject jsonResponse = gson.fromJson(response.getBody(), JsonObject.class);
-        return jsonResponse
+        int malicious_number = jsonResponse
                 .getAsJsonObject("data")
                 .getAsJsonObject("attributes")
                 .getAsJsonObject("stats")
                 .get("malicious").getAsInt();
+        int harmless_number = jsonResponse
+                .getAsJsonObject("data")
+                .getAsJsonObject("attributes")
+                .getAsJsonObject("stats")
+                .get("harmless").getAsInt();
+        return (float) malicious_number / (malicious_number + harmless_number);
     }
 }

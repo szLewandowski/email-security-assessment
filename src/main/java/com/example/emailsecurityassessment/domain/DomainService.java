@@ -24,11 +24,11 @@ public class DomainService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        domain.setFilescanio_assessment((float) FileScanIo.getThreatAssessment(fileScanIoFlowId));
-        domain.setUrlscan_assessment((float) UrlscanIo.getThreatAssessment(urlScanIoResponseUrl));
-        domain.setVirustotal_assessment((float) VirusTotal.getThreatAssessment(virusTotalResponseUrl));
-        domain.setAbuseipdb_assessment((float) AbuseIpdb.getThreatAssessment(UrlscanIo.getIpAddress(urlScanIoResponseUrl)));
-        domain.setGoogle_safe_browsing_assessment((float) GoogleSafeBrowsing.getThreatAssessment(link));
+        domain.setFilescanio_assessment(FileScanIo.getThreatAssessment(fileScanIoFlowId));
+        domain.setUrlscan_assessment(UrlscanIo.getThreatAssessment(urlScanIoResponseUrl));
+        domain.setVirustotal_assessment(VirusTotal.getThreatAssessment(virusTotalResponseUrl));
+        domain.setAbuseipdb_assessment(AbuseIpdb.getThreatAssessment(UrlscanIo.getIpAddress(urlScanIoResponseUrl)));
+        domain.setGoogle_safe_browsing_assessment(GoogleSafeBrowsing.getThreatAssessment(link));
         domain.setHomoglyph(isHomoglyph());
         domain.addMessage(message);
         domainRepository.save(domain);

@@ -29,7 +29,7 @@ public class FileScanIo {
         return jsonResponse.get("flow_id").getAsString();
     }
 
-    public static double getThreatAssessment(String flowId) {
+    public static float getThreatAssessment(String flowId) {
         String response = restTemplate.getForObject(
                 URL_PATH + "/" + flowId + "/report?filter=finalVerdict", String.class);
         Gson gson = new Gson();
@@ -39,7 +39,7 @@ public class FileScanIo {
             return entry.getValue()
                     .getAsJsonObject()
                     .getAsJsonObject("finalVerdict")
-                    .get("threatLevel").getAsDouble();
+                    .get("threatLevel").getAsFloat();
         }
         throw new IllegalArgumentException("No report entry found in the JSON response");
     }

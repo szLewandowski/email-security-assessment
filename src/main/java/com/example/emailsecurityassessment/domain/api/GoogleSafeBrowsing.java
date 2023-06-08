@@ -13,7 +13,7 @@ public class GoogleSafeBrowsing {
     private static final String URL_PATH = "https://safebrowsing.googleapis.com/v4/threatMatches:find";
     private static final RestTemplate restTemplate = new RestTemplate();
 
-    public static double getThreatAssessment(String domain) {
+    public static float getThreatAssessment(String domain) {
         String response = restTemplate.postForObject(URL_PATH + "?key=" + ApiKeys.GoogleSafeBrowsing,
                 makeRequest(domain), String.class);
         if (response == null) {
