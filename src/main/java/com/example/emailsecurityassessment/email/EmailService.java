@@ -1,5 +1,6 @@
 package com.example.emailsecurityassessment.email;
 
+import com.example.emailsecurityassessment.email.api.Disify;
 import com.example.emailsecurityassessment.message.Message;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +22,7 @@ public class EmailService {
         } else {
             email = new Email();
             email.setEmail(email_address);
-            email.setTemporary(false);
-            email.setDisposable(false);
+            Disify.getEmailAssessment(email);
             email.addMessage(message);
             emailRepository.save(email);
         }

@@ -14,13 +14,14 @@ public class Email {
     @Column(name = "email_id")
     private Long id;
     private String email;
-    private boolean temporary;
+    private boolean valid;
+    private boolean valid_dns;
     private boolean disposable;
 
     @ManyToMany(mappedBy = "emails")
     private Set<Message> messages = new HashSet<>();
 
-    public void addMessage(Message message){
+    public void addMessage(Message message) {
         messages.add(message);
         message.getEmails().add(this);
     }
@@ -41,12 +42,20 @@ public class Email {
         this.email = email;
     }
 
-    public boolean isTemporary() {
-        return temporary;
+    public boolean isValid() {
+        return valid;
     }
 
-    public void setTemporary(boolean temporary) {
-        this.temporary = temporary;
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
+
+    public boolean isValid_dns() {
+        return valid_dns;
+    }
+
+    public void setValid_dns(boolean valid_dns) {
+        this.valid_dns = valid_dns;
     }
 
     public boolean isDisposable() {
