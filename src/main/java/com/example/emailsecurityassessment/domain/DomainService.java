@@ -19,6 +19,7 @@ public class DomainService {
         if (domain != null) {
             domain.addMessage(message);
             System.out.println(domain);
+            isHomoglyph(link);
             domainRepository.save(domain);
             System.out.println("Domain already exist: " + link);
         } else {
@@ -84,14 +85,17 @@ public class DomainService {
                 domain.setAbuseipdb_assessment(AbuseIpdb.getThreatAssessment(UrlscanIo.getIpAddress(urlScanIoResponseUrl)));
             }
             domain.setGoogle_safe_browsing_assessment(GoogleSafeBrowsing.getThreatAssessment(link));
-            domain.setHomoglyph(isHomoglyph());
+            domain.setHomoglyph(isHomoglyph(link));
             domain.addMessage(message);
             System.out.println(domain);
             domainRepository.save(domain);
         }
     }
 
-    private boolean isHomoglyph() {
-        return false;
+    private boolean isHomoglyph(String link) {
+        String pattern = "\\A\\p{ASCII}*\\z";
+        boolean result = !link.matches(pattern);
+        System.out.println(link + " - " + result);
+        return result;
     }
 }
