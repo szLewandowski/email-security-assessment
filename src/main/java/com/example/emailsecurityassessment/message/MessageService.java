@@ -34,7 +34,7 @@ public class MessageService {
             domainService.addDomain(link, message);
         }
         for (String email : emails) {
-            if (email.equals(senderEmail)){
+            if (email.equals(senderEmail)) {
                 continue;
             }
             emailService.addEmail(email, message);

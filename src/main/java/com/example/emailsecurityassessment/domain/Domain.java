@@ -101,4 +101,18 @@ public class Domain {
         this.messages = messages;
     }
 
+    @Override
+    public String toString() {
+        return "Domain{" +
+                "id=" + id +
+                ", address='" + address + '\'' +
+                ", google_safe_browsing_assessment=" + google_safe_browsing_assessment +
+                ", urlscan_assessment=" + urlscan_assessment +
+                ", abuseipdb_assessment=" + abuseipdb_assessment +
+                ", filescanio_assessment=" + filescanio_assessment +
+                ", virustotal_assessment=" + virustotal_assessment +
+                ", homoglyph=" + homoglyph +
+                ", messages=" + messages +
+                '}';
+    }
 }

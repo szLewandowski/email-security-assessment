@@ -2,11 +2,9 @@ package com.example.emailsecurityassessment.domain.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -45,6 +43,11 @@ public class VirusTotal {
                 .getAsJsonObject("attributes")
                 .getAsJsonObject("stats")
                 .get("harmless").getAsInt();
-        return (float) malicious_number / (malicious_number + harmless_number);
+        float assessment = (float) malicious_number / (malicious_number + harmless_number);
+        if (Float.isNaN(assessment) || malicious_number == 0 && harmless_number == 0) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Response is not ready");
+        } else {
+            return assessment;
+        }
     }
 }
