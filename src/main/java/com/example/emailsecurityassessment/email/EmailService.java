@@ -13,13 +13,13 @@ public class EmailService {
     }
 
     public void addEmail(String email_address, Message message) {
-        if (emailRepository.existsByEmail(email_address)) {
-            Email email = emailRepository.findFirstByEmail(email_address);
+        Email email = emailRepository.findFirstByEmail(email_address);
+        if (email != null) {
             email.addMessage(message);
             emailRepository.save(email);
             System.out.println("Email already exist: " + email_address);
         } else {
-            Email email = new Email();
+            email = new Email();
             email.setEmail(email_address);
             email.setTemporary(false);
             email.setDisposable(false);

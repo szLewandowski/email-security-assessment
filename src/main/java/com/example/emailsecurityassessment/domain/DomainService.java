@@ -15,14 +15,14 @@ public class DomainService {
     }
 
     public void addDomain(String link, Message message) {
-        if (domainRepository.existsByAddress(link)) {
-            Domain domain = domainRepository.findFirstByAddress(link);
+        Domain domain = domainRepository.findFirstByAddress(link);
+        if (domain != null) {
             domain.addMessage(message);
             System.out.println(domain);
             domainRepository.save(domain);
             System.out.println("Domain already exist: " + link);
         } else {
-            Domain domain = new Domain();
+            domain = new Domain();
             boolean fileScanIo = true;
             boolean urlScanIo = true;
             boolean virusTotal = true;

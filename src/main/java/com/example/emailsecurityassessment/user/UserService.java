@@ -13,13 +13,13 @@ public class UserService {
     }
 
     public void addUser(String senderEmail, Message message) {
-        if (userRepository.existsByEmail(senderEmail)) {
-            User user = userRepository.findFirstByEmail(senderEmail);
+        User user = userRepository.findFirstByEmail(senderEmail);
+        if (user != null) {
             user.addMessage(message);
             userRepository.save(user);
             System.out.println("User already exist: " + senderEmail);
         } else {
-            User user = new User();
+            user = new User();
             user.setEmail(senderEmail);
             user.addMessage(message);
             userRepository.save(user);
