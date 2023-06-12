@@ -19,9 +19,12 @@ import com.google.api.services.gmail.model.*;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -86,14 +89,22 @@ public class GmailApi {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
-    public void sendEmail(String subject, String bodyText, String recipient) throws Exception {
+    public void sendAssessment(String textPlain, String textHtml, String recipient) throws Exception {
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
         MimeMessage email = new MimeMessage(session);
         email.setFrom(new InternetAddress(TEST_EMAIL));
         email.addRecipient(TO, new InternetAddress(recipient));
-        email.setSubject(subject);
-        email.setText(bodyText);
+        email.setSubject("Ocena bezpieczeństwa");
+
+        MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setContent(textPlain, "text/plain; charset=UTF-8");
+        MimeBodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent(textHtml, "text/html; charset=UTF-8");
+        Multipart multipart = new MimeMultipart("alternative");
+        multipart.addBodyPart(textPart);
+        multipart.addBodyPart(htmlPart);
+        email.setContent(multipart);
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         email.writeTo(buffer);
