@@ -35,6 +35,14 @@ public class MessageService {
         this.userService = userService;
     }
 
+    public void requestPushNotifications() throws IOException {
+        gmailApi.requestPushNotifications();
+    }
+
+    public void stopPushNotifications() throws IOException {
+        gmailApi.stopPushNotifications();
+    }
+
     public void newMessage() throws Exception {
         String senderEmail = gmailApi.readBodyAndSetAsDone();
         HashSet<String> links = messageContentAnalyze.extractLinks();
@@ -51,6 +59,7 @@ public class MessageService {
         }
         userService.addUser(senderEmail, message);
         messageRepository.save(message);
+        System.out.println("Email send to: " + senderEmail);
         gmailApi.sendAssessment("This is plain text", prepareHtmlResponse(message), senderEmail);
     }
 
@@ -77,6 +86,11 @@ public class MessageService {
                 p.text("❌ " + domain.getAddress());
             }
             assessmentDetails.appendChild(p);
+            if (isHomoglyphInDomain(domain)) {
+                p = new Element("p");
+                p.text("Wykryto homoglif w nazwie domeny!");
+                assessmentDetails.appendChild(p);
+            }
         }
         p = new Element("p");
         p.text("Sprawdzone adresy email:");
@@ -91,6 +105,10 @@ public class MessageService {
             assessmentDetails.appendChild(p);
         }
         return doc.html();
+    }
+
+    private boolean isHomoglyphInDomain(Domain domain) {
+        return domain.isHomoglyph();
     }
 
     private boolean isDomainSave(Domain domain) {

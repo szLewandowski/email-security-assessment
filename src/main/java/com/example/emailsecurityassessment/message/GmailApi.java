@@ -47,6 +47,7 @@ public class GmailApi {
     public static final String USER_ID = "me";
     public static final String RETURN_PATH_HEADER = "Return-Path";
     public static final String FROM_HEADER = "From";
+    public static final String TOPIC_NAME = "projects/email-security-381209/topics/MyTopic";
     private final Gmail service;
 
     public GmailApi() throws Exception {
@@ -148,9 +149,25 @@ public class GmailApi {
 //                saveTextToFile(readEmailBody(message), EMAIL_BODY_HTML_FILENAME);
                 saveTextToFile(String.valueOf(message), JSON_FILENAME);
                 sender = emailSender(message);
+                moveToLabelAnswered(message);
             }
         }
         return sender;
+    }
+
+    public void requestPushNotifications() throws IOException {
+        WatchRequest watchRequest = new WatchRequest()
+                .setTopicName(TOPIC_NAME)
+                .setLabelIds(Collections.singletonList("INBOX"))
+                .setLabelFilterAction("include");
+        WatchResponse watchResponse = service.users().watch("me", watchRequest).execute();
+        System.out.println("Push notification request sent successfully!");
+        System.out.println("History ID: " + watchResponse.getHistoryId());
+    }
+
+    public void stopPushNotifications() throws IOException {
+        service.users().stop("me").execute();
+        System.out.println("Push notifications turned off successfully!");
     }
 
     private void readAndSaveEmailBody(Message message) throws Exception {
