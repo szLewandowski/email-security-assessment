@@ -37,7 +37,7 @@ public class DomainService {
             }
             String virusTotalResponseUrl = VirusTotal.requestForThreatAssessment(link);
             try {
-                Thread.sleep(3000);
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -61,6 +61,10 @@ public class DomainService {
                         System.out.println("UrlscanIo assessment ready!");
                     } catch (HttpClientErrorException.NotFound e) {
                         System.out.println("UrlscanIo assessment not ready. Retrying...");
+                    } catch (Exception e) {
+                        domain.setUrlscan_assessment(0);
+                        urlScanIo = false;
+                        System.out.println("UrlscanIo assessment SKIPED!");
                     }
                 }
                 if (virusTotal) {
