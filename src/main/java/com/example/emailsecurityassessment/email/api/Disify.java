@@ -14,7 +14,7 @@ public class Disify {
     private static final String URL_PATH = "https://disify.com/api/email/";
     private static final RestTemplate restTemplate = new RestTemplate();
 
-    public static Email getEmailAssessment(Email email) {
+    public static void getEmailAssessment(Email email) {
         ResponseEntity<String> response = restTemplate.exchange(
                 URL_PATH + email.getEmail() + "/mass", HttpMethod.GET, null, String.class);
         Gson gson = new Gson();
@@ -22,7 +22,6 @@ public class Disify {
         email.setDisposable(jsonResponse.get("disposable").getAsInt() != 0);
         email.setValid(jsonResponse.get("valid").getAsInt() != 0);
         email.setValid_dns(jsonResponse.get("invalid_format").getAsInt() == 0);
-        return email;
     }
 }
 
