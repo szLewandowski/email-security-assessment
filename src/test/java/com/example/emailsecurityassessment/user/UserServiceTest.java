@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    public static final String SENDER_EMAIL = "test_user_email@gmail.com";
+    public static final String SENDER_EMAIL = "testUserEmail@gmail.com";
 
     @Mock
     private UserRepository userRepository;

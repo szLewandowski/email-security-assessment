@@ -9,9 +9,19 @@ import org.springframework.web.client.HttpClientErrorException;
 public class DomainService {
 
     private final DomainRepository domainRepository;
+    private final FileScanIo fileScanIo;
+    private final AbuseIpdb abuseIpdb;
+    private final GoogleSafeBrowsing googleSafeBrowsing;
+    private final UrlscanIo urlscanIo;
+    private final VirusTotal virusTotal;
 
-    public DomainService(DomainRepository domainRepository) {
+    public DomainService(DomainRepository domainRepository, FileScanIo fileScanIo, AbuseIpdb abuseIpdb, GoogleSafeBrowsing googleSafeBrowsing, UrlscanIo urlscanIo, VirusTotal virusTotal) {
         this.domainRepository = domainRepository;
+        this.fileScanIo = fileScanIo;
+        this.abuseIpdb = abuseIpdb;
+        this.googleSafeBrowsing = googleSafeBrowsing;
+        this.urlscanIo = urlscanIo;
+        this.virusTotal = virusTotal;
     }
 
     public void addDomain(String link, Message message) {
@@ -24,54 +34,58 @@ public class DomainService {
             System.out.println("Domain already exist: " + link);
         } else {
             domain = new Domain();
-            boolean fileScanIo = true;
-            boolean urlScanIo = true;
-            boolean virusTotal = true;
+            boolean fileScanIoUnready = true;
+            boolean urlScanIoUnready = true;
+            boolean virusTotalUnready = true;
             domain.setAddress(link);
-            String fileScanIoFlowId = FileScanIo.requestForThreatAssessment(link);
+            String fileScanIoFlowId = fileScanIo.requestForThreatAssessment(link);
             String urlScanIoResponseUrl = null;
             try {
-                urlScanIoResponseUrl = UrlscanIo.requestForThreatAssessment(link);
+                urlScanIoResponseUrl = urlscanIo.requestForThreatAssessment(link);
             } catch (HttpClientErrorException.BadRequest e) {
-                urlScanIo = false;
+                domain.setUrlscan_assessment(0);
+                urlScanIoUnready = false;
+                System.out.println("UrlscanIo BadRequest");
             }
-            String virusTotalResponseUrl = VirusTotal.requestForThreatAssessment(link);
+            String virusTotalResponseUrl = virusTotal.requestForThreatAssessment(link);
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                System.exit(1);
             }
 
-            while (fileScanIo || urlScanIo || virusTotal) {
-                if (fileScanIo) {
+            while (fileScanIoUnready || urlScanIoUnready || virusTotalUnready) {
+                if (fileScanIoUnready) {
                     try {
-                        float assessment = FileScanIo.getThreatAssessment(fileScanIoFlowId);
+                        float assessment = fileScanIo.getThreatAssessment(fileScanIoFlowId);
                         domain.setFilescanio_assessment(assessment);
-                        fileScanIo = false;
+                        fileScanIoUnready = false;
                         System.out.println("FileScanIo assessment ready!");
                     } catch (HttpClientErrorException e) {
                         System.out.println("FileScanIo assessment not ready. Retrying...");
                     }
                 }
-                if (urlScanIo) {
+                if (urlScanIoUnready) {
                     try {
-                        float assessment = UrlscanIo.getThreatAssessment(urlScanIoResponseUrl);
+                        float assessment = urlscanIo.getThreatAssessment(urlScanIoResponseUrl);
                         domain.setUrlscan_assessment(assessment);
-                        urlScanIo = false;
+                        urlScanIoUnready = false;
                         System.out.println("UrlscanIo assessment ready!");
                     } catch (HttpClientErrorException.NotFound e) {
                         System.out.println("UrlscanIo assessment not ready. Retrying...");
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         domain.setUrlscan_assessment(0);
-                        urlScanIo = false;
+                        urlScanIoResponseUrl = null;
+                        urlScanIoUnready = false;
                         System.out.println("UrlscanIo assessment SKIPED!");
                     }
                 }
-                if (virusTotal) {
+                if (virusTotalUnready) {
                     try {
-                        float assessment = VirusTotal.getThreatAssessment(virusTotalResponseUrl);
+                        float assessment = virusTotal.getThreatAssessment(virusTotalResponseUrl);
                         domain.setVirustotal_assessment(assessment);
-                        virusTotal = false;
+                        virusTotalUnready = false;
                         System.out.println("VirusTotal assessment ready!");
                     } catch (HttpClientErrorException e) {
                         System.out.println("VirusTotal assessment not ready. Retrying...");
@@ -81,14 +95,15 @@ public class DomainService {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    System.exit(1);
                 }
             }
             if (urlScanIoResponseUrl == null) {
                 domain.setAbuseipdb_assessment(0);
             } else {
-                domain.setAbuseipdb_assessment(AbuseIpdb.getThreatAssessment(UrlscanIo.getIpAddress(urlScanIoResponseUrl)));
+                domain.setAbuseipdb_assessment(abuseIpdb.getThreatAssessment(urlscanIo.getIpAddress(urlScanIoResponseUrl)));
             }
-            domain.setGoogle_safe_browsing_assessment(GoogleSafeBrowsing.getThreatAssessment(link));
+            domain.setGoogle_safe_browsing_assessment(googleSafeBrowsing.getThreatAssessment(link));
             domain.setHomoglyph(isHomoglyph(link));
             domain.addMessage(message);
             System.out.println(domain);

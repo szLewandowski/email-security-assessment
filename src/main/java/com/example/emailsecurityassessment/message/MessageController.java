@@ -19,8 +19,7 @@ public class MessageController {
 
     @GetMapping
     public void getMessage() throws Exception {
-//        messageService.newMessage();
-        cooldown = true;
+        messageService.newMessage();
     }
 
     @GetMapping("/on")
