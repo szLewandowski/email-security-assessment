@@ -64,9 +64,6 @@ public class MessageService {
         }
         userService.addUser(senderEmail, message);
         messageRepository.save(message);
-        System.out.println(message.getDomains().size());
-        System.out.println(message.getUser());
-        System.out.println(message.getEmails().size());
         System.out.println("Email send to: " + senderEmail);
         try {
             gmailApi.sendAssessment("This is plain text", prepareHtmlResponse(message), senderEmail);

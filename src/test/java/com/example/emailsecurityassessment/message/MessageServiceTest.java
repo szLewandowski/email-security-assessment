@@ -1,6 +1,5 @@
 package com.example.emailsecurityassessment.message;
 
-import com.example.emailsecurityassessment.domain.Domain;
 import com.example.emailsecurityassessment.domain.DomainService;
 import com.example.emailsecurityassessment.email.EmailService;
 import com.example.emailsecurityassessment.user.UserService;
@@ -13,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.mockito.Mockito.*;
 
@@ -54,22 +52,6 @@ class MessageServiceTest {
         when(gmailApi.readBodyAndSetAsDone()).thenReturn(SENDER_EMAIL);
         when(messageContentAnalyze.extractLinks()).thenReturn(links);
         when(messageContentAnalyze.extractEmails()).thenReturn(emails);
-
-        doAnswer(invocation -> {
-            Domain domain = new Domain();
-            domain.setId(1L);
-            domain.setAddress(invocation.getArgument(0));
-            domain.setAbuseipdb_assessment(0.1f);
-            domain.setFilescanio_assessment(0.2f);
-            domain.setGoogle_safe_browsing_assessment(0.3f);
-            domain.setUrlscan_assessment(0.4f);
-            domain.setVirustotal_assessment(0.5f);
-            domain.setHomoglyph(false);
-            Set<Message> messages = new HashSet<>();
-            messages.add(invocation.getArgument(1));
-            domain.setMessages(messages);
-            return null;
-        }).when(domainService).addDomain(eq("testDomain.com"), any(Message.class));
 
         messageService.newMessage();
 
