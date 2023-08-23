@@ -19,6 +19,7 @@ import com.google.api.services.gmail.model.*;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 
+import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
@@ -90,7 +91,7 @@ public class GmailApi {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
-    public void sendAssessment(String textPlain, String textHtml, String recipient) throws Exception {
+    public void sendAssessment(String textPlain, String textHtml, String recipient) throws MessagingException, IOException {
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
         MimeMessage email = new MimeMessage(session);
@@ -155,18 +156,27 @@ public class GmailApi {
         return sender;
     }
 
-    public void requestPushNotifications() throws IOException {
+    public void requestPushNotifications() {
         WatchRequest watchRequest = new WatchRequest()
                 .setTopicName(TOPIC_NAME)
                 .setLabelIds(Collections.singletonList("INBOX"))
                 .setLabelFilterAction("include");
-        WatchResponse watchResponse = service.users().watch("me", watchRequest).execute();
+        WatchResponse watchResponse = null;
+        try {
+            watchResponse = service.users().watch("me", watchRequest).execute();
+        } catch (IOException e) {
+            System.out.println("An error occurred while enabling push notifications!");
+        }
         System.out.println("Push notification request sent successfully!");
         System.out.println("History ID: " + watchResponse.getHistoryId());
     }
 
-    public void stopPushNotifications() throws IOException {
-        service.users().stop("me").execute();
+    public void stopPushNotifications() {
+        try {
+            service.users().stop("me").execute();
+        } catch (IOException e) {
+            System.out.println("An error occurred while disabling push notifications!");
+        }
         System.out.println("Push notifications turned off successfully!");
     }
 

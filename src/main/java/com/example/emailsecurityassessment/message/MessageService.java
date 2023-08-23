@@ -35,16 +35,21 @@ public class MessageService {
         this.userService = userService;
     }
 
-    public void requestPushNotifications() throws IOException {
+    public void requestPushNotifications() {
         gmailApi.requestPushNotifications();
     }
 
-    public void stopPushNotifications() throws IOException {
+    public void stopPushNotifications() {
         gmailApi.stopPushNotifications();
     }
 
-    public void newMessage() throws Exception {
-        String senderEmail = gmailApi.readBodyAndSetAsDone();
+    public void newMessage() {
+        String senderEmail = null;
+        try {
+            senderEmail = gmailApi.readBodyAndSetAsDone();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         HashSet<String> links = messageContentAnalyze.extractLinks();
         HashSet<String> emails = messageContentAnalyze.extractEmails();
         Message message = new Message();
@@ -59,8 +64,15 @@ public class MessageService {
         }
         userService.addUser(senderEmail, message);
         messageRepository.save(message);
+        System.out.println(message.getDomains().size());
+        System.out.println(message.getUser());
+        System.out.println(message.getEmails().size());
         System.out.println("Email send to: " + senderEmail);
-        gmailApi.sendAssessment("This is plain text", prepareHtmlResponse(message), senderEmail);
+        try {
+            gmailApi.sendAssessment("This is plain text", prepareHtmlResponse(message), senderEmail);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String prepareHtmlResponse(Message message) {
