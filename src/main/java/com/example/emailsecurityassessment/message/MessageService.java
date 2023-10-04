@@ -44,12 +44,7 @@ public class MessageService {
     }
 
     public void newMessage() {
-        String senderEmail = null;
-        try {
-            senderEmail = gmailApi.readBodyAndSetAsDone();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        String senderEmail = gmailApi.readBodyAndSetAsDone();
         HashSet<String> links = messageContentAnalyze.extractLinks();
         HashSet<String> emails = messageContentAnalyze.extractEmails();
         Message message = new Message();
