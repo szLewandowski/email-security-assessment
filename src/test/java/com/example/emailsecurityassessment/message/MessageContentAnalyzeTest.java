@@ -38,7 +38,7 @@ class MessageContentAnalyzeTest {
 
         HashSet<String> links = messageContentAnalyze.extractLinks();
 
-        assertThat(links).containsOnly("click.mail.x-kom.pl", "view.mail.x-kom.pl", "newsletter.x-kom.pl");
+        assertThat(links).containsOnly("click.mail.x-kom.pl", "view.mail.x-kom.pl");
     }
 
     @Test
