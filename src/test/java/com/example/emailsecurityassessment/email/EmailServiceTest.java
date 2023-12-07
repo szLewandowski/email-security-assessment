@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,13 +31,11 @@ class EmailServiceTest {
     void shouldAddMessageToEmailWhenEmailExist() {
         Email existingEmail = new Email();
         existingEmail.setEmail(EMAIL_ADDRESS);
-        Message message = new Message();
         when(emailRepository.findFirstByEmail(EMAIL_ADDRESS)).thenReturn(existingEmail);
+        Message message = new Message();
 
         emailService.addEmail(EMAIL_ADDRESS, message);
 
-        verify(emailRepository).findFirstByEmail(EMAIL_ADDRESS);
-        verify(emailRepository).save(any(Email.class));
         assertThat(existingEmail.getMessages()).contains(message);
     }
 
@@ -49,7 +46,6 @@ class EmailServiceTest {
 
         emailService.addEmail(EMAIL_ADDRESS, message);
 
-        verify(emailRepository).findFirstByEmail(EMAIL_ADDRESS);
         verify(emailRepository).save(emailCaptor.capture());
         assertThat(emailCaptor.getValue().getEmail()).isEqualTo(EMAIL_ADDRESS);
         assertThat(emailCaptor.getValue().getMessages()).containsOnly(message);

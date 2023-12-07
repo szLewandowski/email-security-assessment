@@ -44,7 +44,7 @@ class MessageServiceTest {
     private MessageService messageService;
 
     @Test
-    void shouldAddNewMessage() throws Exception {
+    void shouldAddNewMessage() {
         HashSet<String> links = new HashSet<>();
         links.add("testDomain.com");
         HashSet<String> emails = new HashSet<>();
@@ -63,7 +63,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void shouldAddNewMessageWhenSenderIsWithExtractedEmails() throws Exception {
+    void shouldAddNewMessageWhenSenderIsWithExtractedEmails() {
         HashSet<String> links = new HashSet<>();
         links.add("testDomain1.com");
         links.add("testDomain2.com");
@@ -84,7 +84,7 @@ class MessageServiceTest {
     }
 
     @Test
-    void shouldAddMessageWhenNotDomainOrEmailExtracted() throws Exception {
+    void shouldAddMessageWhenNotDomainOrEmailExtracted() {
         HashSet<String> emptyLinks = new HashSet<>();
         HashSet<String> emptyEmails = new HashSet<>();
         when(gmailApi.readBodyAndSetAsDone()).thenReturn(SENDER_EMAIL);

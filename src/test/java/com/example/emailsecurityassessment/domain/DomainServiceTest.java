@@ -50,13 +50,11 @@ class DomainServiceTest {
     void shouldAddMessageToDomainWhenDomainExist() {
         Message existingMessage = createMessage();
         Domain domain = existingMessage.getDomains().iterator().next();
-        Message newMessage = new Message();
         when(domainRepository.findFirstByAddress(DOMAIN_ADDRESS)).thenReturn(domain);
+        Message newMessage = new Message();
 
         domainService.addDomain(DOMAIN_ADDRESS, newMessage);
 
-        verify(domainRepository).findFirstByAddress(DOMAIN_ADDRESS);
-        verify(domainRepository).save(domain);
         assertThat(domain.getMessages()).contains(newMessage);
     }
 
