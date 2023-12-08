@@ -142,6 +142,57 @@ class DomainServiceTest {
     }
 
     @Test
+    void shouldBreakUrlScanIoPollingAfterFewFails() {
+        when(domainRepository.findFirstByAddress(DOMAIN_ADDRESS)).thenReturn(null);
+        when(fileScanIo.requestForThreatAssessment(DOMAIN_ADDRESS)).thenReturn("fileScanIoFlowId");
+        when(urlscanIo.requestForThreatAssessment(DOMAIN_ADDRESS)).thenReturn("urlScanIoResponseUrl");
+        when(virusTotal.requestForThreatAssessment(DOMAIN_ADDRESS)).thenReturn("virusTotalResponseUrl");
+        when(fileScanIo.getThreatAssessment("fileScanIoFlowId")).thenReturn(0.11f);
+        when(urlscanIo.getThreatAssessment("urlScanIoResponseUrl"))
+                .thenThrow(HttpClientErrorException.NotFound.class);
+        when(virusTotal.getThreatAssessment("virusTotalResponseUrl")).thenReturn(0.33f);
+        when(googleSafeBrowsing.getThreatAssessment(DOMAIN_ADDRESS)).thenReturn(0.55f);
+        Message newMessage = new Message();
+
+        domainService.addDomain(DOMAIN_ADDRESS, newMessage);
+
+        verify(domainRepository).save(domainCaptor.capture());
+        assertThat(domainCaptor.getValue().getAddress()).isEqualTo(DOMAIN_ADDRESS);
+        assertThat(domainCaptor.getValue().getMessages()).containsOnly(newMessage);
+        assertThat(domainCaptor.getValue().getFilescanio_assessment()).isEqualTo(0.11f);
+        assertThat(domainCaptor.getValue().getUrlscan_assessment()).isEqualTo(0);
+        assertThat(domainCaptor.getValue().getVirustotal_assessment()).isEqualTo(0.33f);
+        assertThat(domainCaptor.getValue().getAbuseipdb_assessment()).isEqualTo(0);
+        assertThat(domainCaptor.getValue().getGoogle_safe_browsing_assessment()).isEqualTo(0.55f);
+    }
+
+    @Test
+    void shouldBreakFileScanIoPollingAfterFewFails() {
+        when(domainRepository.findFirstByAddress(DOMAIN_ADDRESS)).thenReturn(null);
+        when(fileScanIo.requestForThreatAssessment(DOMAIN_ADDRESS)).thenReturn("fileScanIoFlowId");
+        when(urlscanIo.requestForThreatAssessment(DOMAIN_ADDRESS)).thenReturn("urlScanIoResponseUrl");
+        when(virusTotal.requestForThreatAssessment(DOMAIN_ADDRESS)).thenReturn("virusTotalResponseUrl");
+        when(fileScanIo.getThreatAssessment("fileScanIoFlowId")).thenThrow(HttpClientErrorException.class);
+        when(urlscanIo.getThreatAssessment("urlScanIoResponseUrl")).thenReturn(0.22f);
+        when(virusTotal.getThreatAssessment("virusTotalResponseUrl")).thenReturn(0.33f);
+        when(urlscanIo.getIpAddress("urlScanIoResponseUrl")).thenReturn("123.123.123.123");
+        when(abuseIpdb.getThreatAssessment("123.123.123.123")).thenReturn(0.44f);
+        when(googleSafeBrowsing.getThreatAssessment(DOMAIN_ADDRESS)).thenReturn(0.55f);
+        Message newMessage = new Message();
+
+        domainService.addDomain(DOMAIN_ADDRESS, newMessage);
+
+        verify(domainRepository).save(domainCaptor.capture());
+        assertThat(domainCaptor.getValue().getAddress()).isEqualTo(DOMAIN_ADDRESS);
+        assertThat(domainCaptor.getValue().getMessages()).containsOnly(newMessage);
+        assertThat(domainCaptor.getValue().getFilescanio_assessment()).isEqualTo(0);
+        assertThat(domainCaptor.getValue().getUrlscan_assessment()).isEqualTo(0.22f);
+        assertThat(domainCaptor.getValue().getVirustotal_assessment()).isEqualTo(0.33f);
+        assertThat(domainCaptor.getValue().getAbuseipdb_assessment()).isEqualTo(0.44f);
+        assertThat(domainCaptor.getValue().getGoogle_safe_browsing_assessment()).isEqualTo(0.55f);
+    }
+
+    @Test
     void shouldSetTwoAssessmentsToZeroWhenUrlscanIoNotRequestForAssessment() {
         when(domainRepository.findFirstByAddress(DOMAIN_ADDRESS)).thenReturn(null);
         when(fileScanIo.requestForThreatAssessment(DOMAIN_ADDRESS)).thenReturn("fileScanIoFlowId");

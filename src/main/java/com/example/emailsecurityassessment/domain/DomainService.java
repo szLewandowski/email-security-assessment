@@ -34,17 +34,17 @@ public class DomainService {
             System.out.println("Domain already exist: " + link);
         } else {
             domain = new Domain();
-            boolean fileScanIoUnready = true;
-            boolean urlScanIoUnready = true;
-            boolean virusTotalUnready = true;
+            int fileScanIoCounter = 10;
+            int urlScanIoCounter = 10;
+            int virusTotalCounter = 10;
             domain.setAddress(link);
             String fileScanIoFlowId = fileScanIo.requestForThreatAssessment(link);
             String urlScanIoResponseUrl = null;
             try {
                 urlScanIoResponseUrl = urlscanIo.requestForThreatAssessment(link);
             } catch (HttpClientErrorException.BadRequest e) {
-                domain.setUrlscan_assessment(0);
-                urlScanIoUnready = false;
+                domain.setUrlscan_assessment(0f);
+                urlScanIoCounter = 0;
                 System.out.println("UrlscanIo BadRequest");
             }
             String virusTotalResponseUrl = virusTotal.requestForThreatAssessment(link);
@@ -55,40 +55,53 @@ public class DomainService {
                 System.exit(1);
             }
 
-            while (fileScanIoUnready || urlScanIoUnready || virusTotalUnready) {
-                if (fileScanIoUnready) {
+            while (fileScanIoCounter > 0 || urlScanIoCounter > 0 || virusTotalCounter > 0) {
+                if (fileScanIoCounter > 0) {
+                    fileScanIoCounter--;
                     try {
                         float assessment = fileScanIo.getThreatAssessment(fileScanIoFlowId);
                         domain.setFilescanio_assessment(assessment);
-                        fileScanIoUnready = false;
+                        fileScanIoCounter = 0;
                         System.out.println("FileScanIo assessment ready!");
                     } catch (HttpClientErrorException e) {
                         System.out.println("FileScanIo assessment not ready. Retrying...");
+                        if (fileScanIoCounter == 0) {
+                            domain.setFilescanio_assessment(0f);
+                        }
                     }
                 }
-                if (urlScanIoUnready) {
+                if (urlScanIoCounter > 0) {
+                    urlScanIoCounter--;
                     try {
                         float assessment = urlscanIo.getThreatAssessment(urlScanIoResponseUrl);
                         domain.setUrlscan_assessment(assessment);
-                        urlScanIoUnready = false;
+                        urlScanIoCounter = 0;
                         System.out.println("UrlscanIo assessment ready!");
                     } catch (HttpClientErrorException.NotFound e) {
                         System.out.println("UrlscanIo assessment not ready. Retrying...");
+                        if (urlScanIoCounter == 0) {
+                            domain.setUrlscan_assessment(0f);
+                            urlScanIoResponseUrl = null;
+                        }
                     } catch (RuntimeException e) {
                         domain.setUrlscan_assessment(0);
                         urlScanIoResponseUrl = null;
-                        urlScanIoUnready = false;
+                        urlScanIoCounter = 0;
                         System.out.println("UrlscanIo assessment SKIPED!");
                     }
                 }
-                if (virusTotalUnready) {
+                if (virusTotalCounter > 0) {
+                    virusTotalCounter--;
                     try {
                         float assessment = virusTotal.getThreatAssessment(virusTotalResponseUrl);
                         domain.setVirustotal_assessment(assessment);
-                        virusTotalUnready = false;
+                        virusTotalCounter = 0;
                         System.out.println("VirusTotal assessment ready!");
                     } catch (HttpClientErrorException e) {
                         System.out.println("VirusTotal assessment not ready. Retrying...");
+                        if (virusTotalCounter == 0) {
+                            domain.setVirustotal_assessment(0f);
+                        }
                     }
                 }
                 try {
