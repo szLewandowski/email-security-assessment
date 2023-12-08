@@ -13,10 +13,10 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class UrlscanIo {
 
-    private static final String URL_PATH = "https://urlscan.io/api/v1/scan/";
-    private static final RestTemplate restTemplate = new RestTemplate();
+    private final String URL_PATH = "https://urlscan.io/api/v1/scan/";
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    public static String requestForThreatAssessment(String domain) {
+    public String requestForThreatAssessment(String domain) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("API-Key", ApiKeys.UrlscanIo);
         headers.set("Content-Type", "application/json");
@@ -27,7 +27,7 @@ public class UrlscanIo {
         return jsonResponse.get("api").getAsString();
     }
 
-    public static float getThreatAssessment(String responseUrl) {
+    public float getThreatAssessment(String responseUrl) {
         String response = restTemplate.getForObject(responseUrl, String.class);
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
@@ -41,7 +41,7 @@ public class UrlscanIo {
         return (float) score / 100;
     }
 
-    public static String getIpAddress(String responseUrl) {
+    public String getIpAddress(String responseUrl) {
         String response = restTemplate.getForObject(responseUrl, String.class);
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
@@ -50,7 +50,7 @@ public class UrlscanIo {
                 .get("ip").getAsString();
     }
 
-    private static String makeRequest(String domain) {
+    private String makeRequest(String domain) {
         JsonObject request = new JsonObject();
         request.addProperty("url", domain);
         request.addProperty("visibility", "public");

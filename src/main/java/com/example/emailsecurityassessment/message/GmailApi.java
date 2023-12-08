@@ -19,6 +19,7 @@ import com.google.api.services.gmail.model.*;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 
+import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
@@ -90,30 +91,13 @@ public class GmailApi {
         return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
-    public void sendAssessment(String textPlain, String textHtml, String recipient) throws Exception {
-        Properties props = new Properties();
-        Session session = Session.getDefaultInstance(props, null);
-        MimeMessage email = new MimeMessage(session);
-        email.setFrom(new InternetAddress(TEST_EMAIL));
-        email.addRecipient(TO, new InternetAddress(recipient));
-        email.setSubject("Ocena bezpieczeństwa");
+    public void sendAssessment(String textPlain, String textHtml, String recipient) {
+        MimeMessage email = createMimeMessage(textPlain, textHtml, recipient);
+        Message message = createMessage(email);
+        sendMessage(message);
+    }
 
-        MimeBodyPart textPart = new MimeBodyPart();
-        textPart.setContent(textPlain, "text/plain; charset=UTF-8");
-        MimeBodyPart htmlPart = new MimeBodyPart();
-        htmlPart.setContent(textHtml, "text/html; charset=UTF-8");
-        Multipart multipart = new MimeMultipart("alternative");
-        multipart.addBodyPart(textPart);
-        multipart.addBodyPart(htmlPart);
-        email.setContent(multipart);
-
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        email.writeTo(buffer);
-        byte[] rawMessageBytes = buffer.toByteArray();
-        String encodedEmail = Base64.encodeBase64URLSafeString(rawMessageBytes);
-        Message message = new Message();
-        message.setRaw(encodedEmail);
-
+    private void sendMessage(Message message) {
         try {
             message = service.users().messages().send("me", message).execute();
             System.out.println("Message id: " + message.getId());
@@ -123,18 +107,61 @@ public class GmailApi {
             if (error.getCode() == 403) {
                 System.err.println("Unable to send message: " + e.getDetails());
             } else {
-                throw e;
+                throw new RuntimeException("Error occurred during sending email");
             }
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot send message");
         }
     }
 
-    public String readBodyAndSetAsDone() throws Exception {
-        ListThreadsResponse allInboxThreads = service.users()
-                .threads()
-                .list(USER_ID)
-                .setLabelIds(List.of("INBOX"))
-                .execute();
+    private static MimeMessage createMimeMessage(String textPlain, String textHtml, String recipient) {
+        try {
+            Properties props = new Properties();
+            Session session = Session.getDefaultInstance(props, null);
+            MimeMessage email = new MimeMessage(session);
+            email.setFrom(new InternetAddress(TEST_EMAIL));
+            email.addRecipient(TO, new InternetAddress(recipient));
+            email.setSubject("Ocena bezpieczeństwa");
 
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setContent(textPlain, "text/plain; charset=UTF-8");
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setContent(textHtml, "text/html; charset=UTF-8");
+            Multipart multipart = new MimeMultipart("alternative");
+            multipart.addBodyPart(textPart);
+            multipart.addBodyPart(htmlPart);
+            email.setContent(multipart);
+            return email;
+        } catch (MessagingException e) {
+            throw new RuntimeException("Cannot create MIME message");
+        }
+    }
+
+    private static Message createMessage(MimeMessage email) {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        try {
+            email.writeTo(buffer);
+        } catch (IOException | MessagingException e) {
+            throw new RuntimeException("Cannot create return message");
+        }
+        byte[] rawMessageBytes = buffer.toByteArray();
+        String encodedEmail = Base64.encodeBase64URLSafeString(rawMessageBytes);
+        Message message = new Message();
+        message.setRaw(encodedEmail);
+        return message;
+    }
+
+    public String readBodyAndSetAsDone() {
+        ListThreadsResponse allInboxThreads = null;
+        try {
+            allInboxThreads = service.users()
+                    .threads()
+                    .list(USER_ID)
+                    .setLabelIds(List.of("INBOX"))
+                    .execute();
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot download threads from inbox");
+        }
         String sender = "";
         var threads = allInboxThreads.getThreads();
         if (threads == null || threads.isEmpty()) {
@@ -143,7 +170,12 @@ public class GmailApi {
         }
         Collections.reverse(threads);
         for (var thread : threads) {
-            Thread threadWithMessages = service.users().threads().get(USER_ID, thread.getId()).setFormat("full").execute();
+            Thread threadWithMessages = null;
+            try {
+                threadWithMessages = service.users().threads().get(USER_ID, thread.getId()).setFormat("full").execute();
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot download a thread with messages");
+            }
             for (Message message : threadWithMessages.getMessages()) {
                 readAndSaveEmailBody(message);
 //                saveTextToFile(readEmailBody(message), EMAIL_BODY_HTML_FILENAME);
@@ -155,22 +187,31 @@ public class GmailApi {
         return sender;
     }
 
-    public void requestPushNotifications() throws IOException {
+    public void requestPushNotifications() {
         WatchRequest watchRequest = new WatchRequest()
                 .setTopicName(TOPIC_NAME)
                 .setLabelIds(Collections.singletonList("INBOX"))
                 .setLabelFilterAction("include");
-        WatchResponse watchResponse = service.users().watch("me", watchRequest).execute();
+        WatchResponse watchResponse = null;
+        try {
+            watchResponse = service.users().watch("me", watchRequest).execute();
+        } catch (IOException e) {
+            System.out.println("An error occurred while enabling push notifications!");
+        }
         System.out.println("Push notification request sent successfully!");
         System.out.println("History ID: " + watchResponse.getHistoryId());
     }
 
-    public void stopPushNotifications() throws IOException {
-        service.users().stop("me").execute();
+    public void stopPushNotifications() {
+        try {
+            service.users().stop("me").execute();
+        } catch (IOException e) {
+            System.out.println("An error occurred while disabling push notifications!");
+        }
         System.out.println("Push notifications turned off successfully!");
     }
 
-    private void readAndSaveEmailBody(Message message) throws Exception {
+    private void readAndSaveEmailBody(Message message) {
         saveTextToFile("", EMAIL_BODY_HTML_FILENAME);
         saveTextToFile("", EMAIL_BODY_PLAIN_FILENAME);
         switch (message.getPayload().getMimeType()) {
@@ -179,11 +220,11 @@ public class GmailApi {
             case "multipart/alternative" -> findTextStartingFromAlternative(message.getPayload());
             case "text/plain" -> savePlainToFile(message.getPayload());
             case "text/html" -> saveHtmlToFile(message.getPayload());
-            default -> throw new Exception("Invalid message mimeType");
+            default -> throw new RuntimeException("Cannot find valid mime type");
         }
     }
 
-    private void findTextStartingFromMixed(MessagePart mixedMime) throws Exception {
+    private void findTextStartingFromMixed(MessagePart mixedMime) {
         for (MessagePart messagePart : mixedMime.getParts()) {
             if (messagePart.getMimeType().equals("multipart/related")) {
                 findTextStartingFromRelated(messagePart);
@@ -191,7 +232,7 @@ public class GmailApi {
         }
     }
 
-    private void findTextStartingFromRelated(MessagePart relatedMime) throws Exception {
+    private void findTextStartingFromRelated(MessagePart relatedMime) {
         for (MessagePart messagePart : relatedMime.getParts()) {
             if (messagePart.getMimeType().equals("multipart/alternative")) {
                 findTextStartingFromAlternative(messagePart);
@@ -199,7 +240,7 @@ public class GmailApi {
         }
     }
 
-    private void findTextStartingFromAlternative(MessagePart alternativeMime) throws Exception {
+    private void findTextStartingFromAlternative(MessagePart alternativeMime) {
         for (MessagePart messagePart : alternativeMime.getParts()) {
             if (messagePart.getMimeType().equals("text/plain")) {
                 savePlainToFile(messagePart);
@@ -210,21 +251,29 @@ public class GmailApi {
         }
     }
 
-    private void saveHtmlToFile(MessagePart htmlMime) throws Exception {
-        saveTextToFile(
-                new String(java.util.Base64.getUrlDecoder().decode(htmlMime.getBody().getData()), "UTF-8"),
-                EMAIL_BODY_HTML_FILENAME
-        );
+    private void saveHtmlToFile(MessagePart htmlMime) {
+        try {
+            saveTextToFile(
+                    new String(java.util.Base64.getUrlDecoder().decode(htmlMime.getBody().getData()), "UTF-8"),
+                    EMAIL_BODY_HTML_FILENAME
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot save HTML to file");
+        }
     }
 
-    private void savePlainToFile(MessagePart plainMime) throws Exception {
-        saveTextToFile(
-                new String(java.util.Base64.getUrlDecoder().decode(plainMime.getBody().getData()), "UTF-8"),
-                EMAIL_BODY_PLAIN_FILENAME
-        );
+    private void savePlainToFile(MessagePart plainMime) {
+        try {
+            saveTextToFile(
+                    new String(java.util.Base64.getUrlDecoder().decode(plainMime.getBody().getData()), "UTF-8"),
+                    EMAIL_BODY_PLAIN_FILENAME
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot save plaintext to file");
+        }
     }
 
-    private String emailSender(Message message) throws Exception {
+    private String emailSender(Message message) {
         String from = null;
         if (message.getPayload().getHeaders() != null) {
             for (MessagePartHeader messagePartHeader : message.getPayload().getHeaders()) {
@@ -238,10 +287,10 @@ public class GmailApi {
             if (from != null) {
                 return from;
             } else {
-                throw new Exception("Return-Path and From not found");
+                throw new RuntimeException("Return-Path and From not found");
             }
         }
-        throw new Exception("Empty JSON headers");
+        throw new RuntimeException("Empty JSON headers");
     }
 
     private String extractEmail(String text) {
@@ -254,11 +303,15 @@ public class GmailApi {
         }
     }
 
-    private void moveToLabelAnswered(Message message) throws IOException {
+    private void moveToLabelAnswered(Message message) {
         ModifyMessageRequest modifyMessageRequest = new ModifyMessageRequest();
         modifyMessageRequest.setAddLabelIds(List.of(ANSWERED_LABEL));
         modifyMessageRequest.setRemoveLabelIds(List.of("INBOX"));
-        service.users().messages().modify(USER_ID, message.getId(), modifyMessageRequest).execute();
+        try {
+            service.users().messages().modify(USER_ID, message.getId(), modifyMessageRequest).execute();
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot move email to answered");
+        }
     }
 
     private void saveTextToFile(String text, String filename) {

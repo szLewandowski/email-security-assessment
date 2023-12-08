@@ -18,23 +18,22 @@ public class MessageController {
     }
 
     @GetMapping
-    public void getMessage() throws Exception {
-//        messageService.newMessage();
-        cooldown = true;
+    public void getMessage() {
+        messageService.newMessage();
     }
 
     @GetMapping("/on")
-    public void turnOnPushNotifications() throws Exception {
+    public void turnOnPushNotifications() {
         messageService.requestPushNotifications();
     }
 
     @GetMapping("/off")
-    public void turnOffPushNotifications() throws Exception {
+    public void turnOffPushNotifications() {
         messageService.stopPushNotifications();
     }
 
     @PostMapping
-    public void postMessage(@RequestBody String body) throws Exception {
+    public void postMessage(@RequestBody String body) {
         System.out.println("Method POST triggered!");
         System.out.println(body);
         if (cooldown) {

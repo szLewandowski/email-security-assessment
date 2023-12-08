@@ -10,10 +10,10 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class VirusTotal {
 
-    private static final String URL_PATH = "https://www.virustotal.com/api/v3/urls";
-    private static final RestTemplate restTemplate = new RestTemplate();
+    private final String URL_PATH = "https://www.virustotal.com/api/v3/urls";
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    public static String requestForThreatAssessment(String domain) {
+    public String requestForThreatAssessment(String domain) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("x-apikey", ApiKeys.VirusTotal);
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
@@ -26,7 +26,7 @@ public class VirusTotal {
                 .get("self").getAsString();
     }
 
-    public static float getThreatAssessment(String responseUrl) {
+    public float getThreatAssessment(String responseUrl) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("x-apikey", ApiKeys.VirusTotal);
         HttpEntity<String> entity = new HttpEntity<>(null, headers);

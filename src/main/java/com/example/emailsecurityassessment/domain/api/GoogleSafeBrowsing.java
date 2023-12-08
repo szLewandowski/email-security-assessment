@@ -10,10 +10,10 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class GoogleSafeBrowsing {
 
-    private static final String URL_PATH = "https://safebrowsing.googleapis.com/v4/threatMatches:find";
-    private static final RestTemplate restTemplate = new RestTemplate();
+    private final String URL_PATH = "https://safebrowsing.googleapis.com/v4/threatMatches:find";
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    public static float getThreatAssessment(String domain) {
+    public float getThreatAssessment(String domain) {
         String response = restTemplate.postForObject(URL_PATH + "?key=" + ApiKeys.GoogleSafeBrowsing,
                 makeRequest(domain), String.class);
         if (response == null) {
@@ -28,7 +28,7 @@ public class GoogleSafeBrowsing {
         }
     }
 
-    private static String makeRequest(String domain) {
+    private String makeRequest(String domain) {
         JsonObject client = new JsonObject();
         client.addProperty("clientId", "emailSecurityAssessment");
         client.addProperty("clientVersion", "1.0");

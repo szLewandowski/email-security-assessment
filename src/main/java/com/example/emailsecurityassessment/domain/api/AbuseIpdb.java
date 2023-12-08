@@ -12,10 +12,10 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class AbuseIpdb {
 
-    private static final String URL_PATH = "https://api.abuseipdb.com/api/v2/check";
-    private static final RestTemplate restTemplate = new RestTemplate();
+    private final String URL_PATH = "https://api.abuseipdb.com/api/v2/check";
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    public static float getThreatAssessment(String ip) {
+    public float getThreatAssessment(String ip) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Key", ApiKeys.AbuseIpdb);
         headers.set("Accept", "application/json");

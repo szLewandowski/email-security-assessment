@@ -16,14 +16,14 @@ public class MessageContentAnalyze {
     private static final String EMAIL_BODY_HTML_FILENAME = "email_body_html.txt";
     private static final String EMAIL_BODY_PLAIN_FILENAME = "email_body_plain.txt";
 
-    public HashSet<String> extractLinks() throws MalformedURLException {
+    public HashSet<String> extractLinks() {
         HashSet<String> links = new HashSet<>();
         links.addAll(extractLinksFromHtml());
         links.addAll(extractLinksFromPlaintext());
         return links;
     }
 
-    public HashSet<String> extractEmails(){
+    public HashSet<String> extractEmails() {
         HashSet<String> emails = new HashSet<>();
         emails.addAll(extractEmailsFromHtml());
         emails.addAll(extractEmailsFromPlaintext());
@@ -58,7 +58,7 @@ public class MessageContentAnalyze {
         return emailsHashSet;
     }
 
-    private HashSet<String> extractLinksFromHtml() throws MalformedURLException {
+    private HashSet<String> extractLinksFromHtml() {
         String content = readFile(EMAIL_BODY_HTML_FILENAME);
         Pattern pattern = Pattern.compile("href=(?:\"|')?(.*?)(?:\"|')?(?:\\s|>)");
         Matcher matcher = pattern.matcher(content);
@@ -73,7 +73,7 @@ public class MessageContentAnalyze {
         return linksHashSet;
     }
 
-    private HashSet<String> extractLinksFromPlaintext() throws MalformedURLException {
+    private HashSet<String> extractLinksFromPlaintext() {
         String content = readFile(EMAIL_BODY_PLAIN_FILENAME);
         Pattern pattern = Pattern.compile("<?(https?:\\S+)(?=>|\\b)");
         Matcher matcher = pattern.matcher(content);
@@ -86,8 +86,13 @@ public class MessageContentAnalyze {
         return linksHashSet;
     }
 
-    private String getDomainFromUrl(String full_path) throws MalformedURLException {
-        URL url = new URL(full_path);
+    private String getDomainFromUrl(String full_path) {
+        URL url = null;
+        try {
+            url = new URL(full_path);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
         return url.getHost();
     }
 

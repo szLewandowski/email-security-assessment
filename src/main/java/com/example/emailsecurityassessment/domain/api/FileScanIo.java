@@ -13,10 +13,10 @@ import java.util.Map;
 @Component
 public class FileScanIo {
 
-    private static final String URL_PATH = "https://www.filescan.io/api/scan";
-    private static final RestTemplate restTemplate = new RestTemplate();
+    private final String URL_PATH = "https://www.filescan.io/api/scan";
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    public static String requestForThreatAssessment(String domain) {
+    public String requestForThreatAssessment(String domain) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");
         headers.set("Content-Type", "application/x-www-form-urlencoded");
@@ -27,7 +27,7 @@ public class FileScanIo {
         return jsonResponse.get("flow_id").getAsString();
     }
 
-    public static float getThreatAssessment(String flowId) {
+    public float getThreatAssessment(String flowId) {
         String response = restTemplate.getForObject(
                 URL_PATH + "/" + flowId + "/report?filter=finalVerdict", String.class);
         Gson gson = new Gson();
