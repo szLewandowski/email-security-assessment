@@ -11,10 +11,10 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class Disify {
 
-    private static final String URL_PATH = "https://disify.com/api/email/";
-    private static final RestTemplate restTemplate = new RestTemplate();
+    private final String URL_PATH = "https://disify.com/api/email/";
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    public static void getEmailAssessment(Email email) {
+    public void getEmailAssessment(Email email) {
         ResponseEntity<String> response = restTemplate.exchange(
                 URL_PATH + email.getEmail() + "/mass", HttpMethod.GET, null, String.class);
         Gson gson = new Gson();

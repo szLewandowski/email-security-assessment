@@ -1,5 +1,6 @@
 package com.example.emailsecurityassessment.email;
 
+import com.example.emailsecurityassessment.email.api.Disify;
 import com.example.emailsecurityassessment.message.Message;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,9 @@ class EmailServiceTest {
 
     @Mock
     private EmailRepository emailRepository;
+
+    @Mock
+    private Disify disify;
 
     @Captor
     private ArgumentCaptor<Email> emailCaptor;

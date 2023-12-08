@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final EmailRepository emailRepository;
+    private final Disify disify;
 
-    public EmailService(EmailRepository emailRepository) {
+    public EmailService(EmailRepository emailRepository, Disify disify) {
         this.emailRepository = emailRepository;
+        this.disify = disify;
     }
 
     public void addEmail(String email_address, Message message) {
@@ -22,7 +24,7 @@ public class EmailService {
         } else {
             email = new Email();
             email.setEmail(email_address);
-            Disify.getEmailAssessment(email);
+            disify.getEmailAssessment(email);
             email.addMessage(message);
             emailRepository.save(email);
         }
