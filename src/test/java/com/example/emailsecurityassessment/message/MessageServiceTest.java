@@ -18,7 +18,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class MessageServiceTest {
 
-    public static final String SENDER_EMAIL = "sender-email@gmail.com";
+    private static final String SENDER_EMAIL = "sender-email@gmail.com";
+    private static final String SELF_EMAIL = "verify.this.email.message@gmail.com";
     @Mock
     private GmailApi gmailApi;
 
@@ -57,6 +58,26 @@ class MessageServiceTest {
 
         verify(domainService).addDomain(eq("testDomain.com"), messageCaptor.capture());
         verify(emailService).addEmail("testEmail@gmail.com", messageCaptor.getValue());
+        verify(userService).addUser(SENDER_EMAIL, messageCaptor.getValue());
+        verify(messageRepository).save(messageCaptor.getValue());
+        verify(gmailApi).sendAssessment(anyString(), anyString(), eq(SENDER_EMAIL));
+    }
+
+    @Test
+    void shouldNotAddAnyEmailsWhenThereIsOnlySenderAndSelfEmail() {
+        HashSet<String> links = new HashSet<>();
+        links.add("testDomain.com");
+        HashSet<String> emails = new HashSet<>();
+        emails.add(SELF_EMAIL);
+        emails.add(SENDER_EMAIL);
+        when(gmailApi.readBodyAndSetAsDone()).thenReturn(SENDER_EMAIL);
+        when(messageContentAnalyze.extractLinks()).thenReturn(links);
+        when(messageContentAnalyze.extractEmails()).thenReturn(emails);
+
+        messageService.newMessage();
+
+        verify(domainService).addDomain(eq("testDomain.com"), messageCaptor.capture());
+        verify(emailService, never()).addEmail(anyString(), eq(messageCaptor.getValue()));
         verify(userService).addUser(SENDER_EMAIL, messageCaptor.getValue());
         verify(messageRepository).save(messageCaptor.getValue());
         verify(gmailApi).sendAssessment(anyString(), anyString(), eq(SENDER_EMAIL));

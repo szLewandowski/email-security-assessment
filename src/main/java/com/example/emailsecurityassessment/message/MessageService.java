@@ -19,6 +19,7 @@ import java.util.Set;
 @Service
 public class MessageService {
     private static final String RESPONSE_FILENAME = "response.html";
+    private static final String SELF_EMAIL = "verify.this.email.message@gmail.com";
     private final MessageRepository messageRepository;
     private final GmailApi gmailApi;
     private final MessageContentAnalyze messageContentAnalyze;
@@ -52,7 +53,7 @@ public class MessageService {
             domainService.addDomain(link, message);
         }
         for (String email : emails) {
-            if (email.equals(senderEmail)) {
+            if (email.equals(senderEmail) || email.equals(SELF_EMAIL)) {
                 continue;
             }
             emailService.addEmail(email, message);
